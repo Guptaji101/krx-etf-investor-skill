@@ -1,0 +1,11 @@
+{
+  "name": "krx-etf-investor-skill",
+  "description": "5 Claude skills for long-term investing in Korean-listed ETFs: profile and overlap, portfolio look-through, DCA and drawdown history, valuation context, and a goal planner. Facts, not verdicts.",
+  "version": "1.0.0",
+  "author": {"name": "Aman kumar Gupta"},
+  "homepage": "https://github.com/Guptaji101/krx-etf-investor-skill",
+  "repository": "https://github.com/Guptaji101/krx-etf-investor-skill",
+  "license": "MIT",
+  "keywords": ["claude-code", "claude-skills", "etf", "korea", "krx", "long-term-investing", "dca"],
+  "skills": "./"
+}

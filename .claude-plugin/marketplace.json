@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "krx-etf-investor-skill",
+  "description": "KRX ETF Investor skill pack for Claude",
+  "owner": {"name": "Aman kumar Gupta"},
+  "plugins": [
+    {
+      "name": "krx-etf-investor-skill",
+      "description": "Long-term investing in Korean-listed ETFs: profile, portfolio look-through, history, valuation, goal planner.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
