@@ -141,15 +141,18 @@ def report(code, lst):
         line += "; %d of %d past falls over 10%% went deeper (deepest %s)" % (deeper, len(falls), etf.pct(min(falls)))
     L.append(line)
     if pc["yield_now"] is not None:
-        L.append("    Dividend yield %.2f%% now vs %.2f%% on average over 5 years" % (
-            pc["yield_now"], pc["yield_5y_avg"] or 0))
+        L.append("    Dividend yield %.2f%% now vs %.2f%% on average over %s" % (
+            pc["yield_now"], pc["yield_5y_avg"] or 0,
+            "5 years" if pc["years"] >= 5 else "the %.1f years of data" % pc["years"]))
     L.append("  No free history of index PER is available, so 'cheap' here means cheaper than its own recent "
              "price, not than its earnings history. Cyclical stocks can look cheapest at their peak.")
     return L, {"etf": e, "look_through": lt, "price": pc}
 
 
 def fx(x):
-    return "%.1f" % x if x is not None else "-"
+    if x is None:
+        return "-"
+    return "%.1f" % x if x > 0 else "loss"
 
 
 def main(argv=None):

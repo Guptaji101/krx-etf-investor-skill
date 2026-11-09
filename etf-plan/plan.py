@@ -153,17 +153,47 @@ def rule_breaks(weights, rules, lst):
     return out
 
 
-def current(pf, lst):
+def twins(held, mix):
+    """{held code: target code} for held ETFs that track the same index as a target ETF
+    (e.g. HANARO 200 and KODEX 200 both track the KOSPI 200)."""
+    out = {}
+    idx = {}
+    for c in mix:
+        try:
+            idx[(etf.analysis(c).get("index") or "").replace(" ", "")] = c
+        except etf.ETFError:
+            continue
+    for c in held:
+        if c in mix:
+            continue
+        try:
+            i = (etf.analysis(c).get("index") or "").replace(" ", "")
+        except etf.ETFError:
+            continue
+        if i and i in idx:
+            out[c] = idx[i]
+    return out
+
+
+def current(pf, lst, mix=None):
+    """Value per ETF; with a mix, same-index twins are counted toward their target ETF."""
     by = {e["code"]: e for e in lst}
     vals = {p["code"]: p["qty"] * by[p["code"]]["price"] for p in pf["positions"] if p["code"] in by}
     total = sum(vals.values()) + float(pf.get("cash") or 0)
+    if mix:
+        tw = twins(vals, mix)
+        merged = {}
+        for c, v in vals.items():
+            k = tw.get(c, c)
+            merged[k] = merged.get(k, 0) + v
+        return merged, total, tw
     return vals, total
 
 
 def next_buys(g, pf, lst, budget=None):
     """This month's money to the most underweight target ETFs, whole shares, no selling."""
     by = {e["code"]: e for e in lst}
-    vals, total = current(pf, lst)
+    vals, total, _ = current(pf, lst, g["mix"])
     cash = float(budget if budget is not None else g.get("monthly") or 0)
     after = total + cash
     want = {c: after * w / 100.0 - vals.get(c, 0.0) for c, w in g["mix"].items()}
@@ -239,7 +269,8 @@ def cmd_show(a, lst, only_next=False):
         rules = g.get("rules") or {}
         L.append("")
         tgt_breaks = rule_breaks(g["mix"], rules, lst) if rules else []
-        cur_w = {c: 100 * v / total for c, v in vals.items()} if total else {}
+        raw_vals, _ = current(pf, lst)
+        cur_w = {c: 100 * v / total for c, v in raw_vals.items()} if total else {}
         cur_breaks = rule_breaks(cur_w, rules, lst) if rules and cur_w else []
         if not rules:
             L.append("4. Your rules: none set (plan.py rules --max-stock 20 --max-sector 40 --max-etf 60 --no-leverage).")
@@ -256,6 +287,10 @@ def cmd_show(a, lst, only_next=False):
             now = 100 * vals.get(c, 0) / total if total else 0
             L.append("   %s %-24s now %5.1f%%  target %5.1f%%  %s" % (c, by.get(c, {}).get("name", "?")[:24], now, w,
                                                                     etf.pct(now - w) + " pts"))
+        _, _, tw = current(pf, lst, g["mix"])
+        for c, t in tw.items():
+            L.append("   %s %-24s tracks the same index as %s %s, so it counts toward that target" % (
+                c, by[c]["name"][:24], t, by.get(t, {}).get("name", "")))
         extra = [c for c in vals if c not in g["mix"]]
         for c in extra:
             L.append("   %s %-24s now %5.1f%%  not in your plan: keep it, or stop adding to it" % (

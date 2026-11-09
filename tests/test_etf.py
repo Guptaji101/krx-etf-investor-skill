@@ -219,7 +219,8 @@ class Plan(Workdir):
         self.assertEqual(rc, 0)
         for s in ("1. Goal", "2. Track record", "3. Deepest fall", "4. Your rules", "5. Drift", "6. This month"):
             self.assertIn(s, out)
-        self.assertIn("not in your plan", out)
+        self.assertIn("tracks the same index as 069500", out)    # HANARO 200 counts toward KODEX 200
+        self.assertNotIn("293180 HANARO 200               now", out)
         rc, out = run(p, ["--json", "next", "--budget", "200000"])
         doc = json.loads(out)
         spent = 200000 - doc["left"]
